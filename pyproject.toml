@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "hestonnn"
+version = "0.0.1"
+description = "P2 — Heston with neural components for exotic pricing (data layer + scaffold)"
+requires-python = ">=3.10"
+dependencies = [
+    "numpy>=1.24",
+    "pandas>=2.0",
+    "pyarrow>=12",
+    "scipy>=1.10",
+    "pyyaml>=6",
+]
+
+# The frozen Heston engine is a READ-ONLY pinned dependency (D-note): it is never edited by P2.
+# Wire it in the next build session, pinned to a specific commit SHA:
+#   "heston-engine @ git+https://github.com/shreyasgitstuvw/Heston-engine@<PINNED_SHA>"
+
+[project.optional-dependencies]
+dev = ["pytest>=7"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

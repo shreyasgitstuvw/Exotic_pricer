@@ -1,0 +1,32 @@
+# Data-layer configuration — every run is driven by this file (BENCHMARKS: no hand-edited numbers).
+# Paths are the user-machine paths; the runner also accepts --data-root to override for the sandbox.
+
+data_root: "C:/Users/chand/PycharmProjects/Quant"
+
+sources:
+  options_history: "HISTORY_NIFTY"        # 1-min front-contract option strips, year/Week_NN/*.parquet
+  futures: "NIFTY50_FUTURES.csv"          # 1-min futures OHLCV (forward cross-check)
+  vix: "India_VIX.csv"                    # 1-min India VIX (conditioning feature)
+  bhavcopy_dir: "bhavcopy"                # EOD F&O bhavcopy (Option A) — populate to enable full surfaces
+
+# EOD close window (D1): median of minute marks in [start, end], IST.
+close_window:
+  start: "15:25"
+  end: "15:29"
+
+# Empirical expiry detection (D3): a day is an expiry if the front ATM straddle time-value
+# falls below this many index points at the close.
+expiry:
+  time_value_threshold: 15.0
+
+# Surface hygiene / gate (M0).
+surface:
+  min_tte_days: 1.0              # exclude 0DTE/expiry-day smiles (pin risk, microstructure noise)
+  min_strikes: 7                 # reject a smile with fewer usable quotes
+  moneyness_clip: [0.80, 1.20]   # keep K/F within this band
+  min_price: 0.05                # drop sub-tick quotes (index points)
+  iv_bounds: [0.01, 3.0]         # reject inverted IVs outside this band
+
+output:
+  surfaces_dir: "data/surfaces"
+  manifest: "data/manifest.csv"

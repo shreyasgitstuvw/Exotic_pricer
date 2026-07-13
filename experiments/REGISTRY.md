@@ -1,0 +1,9 @@
+# Experiment Registry — the honesty ledger
+Rule (tightened Jul 13): the registry line is written BEFORE the first run — including descriptive studies. Protocol amendments after first contact with data are allowed only for structural/identifiability reasons, documented with evidence both ways (D6 is the precedent).
+
+| ID | Question | Bar / protocol | Verdict | Date |
+|---|---|---|---|---|
+| EXP-001a — short-end instability proxy | How unstable are constrained-Heston (σ_v, ρ, v0) params on 1-min short-end smiles? | Descriptive: median + p95 daily |Δ| | Large swings (σ_v med |Δ| 0.95, ρ 0.24) but confounded by single-short-smile identifiability → motivated full-surface M1. Artifacts: data/params_timeseries_shortend.csv, money_plot_shortend.png | 2026-07-13 |
+| EXP-001b — full-surface M1 (bhavcopy) | How unstable are daily 5-param Heston fits on multi-tenor NIFTY surfaces? | Descriptive per PLAN M1; protocol AMENDED per D6: fit tenors ≥14d, record `short_gap_bps` on excluded tenors (structural fix: naive protocol bound-slammed 39% of dates; evidence in D6) | 17-date subset: fits trustworthy (34 bps median, 0 slams); genuine instability (σ_v med |Δ|≈0.35, ρ≈0.15; κ weakly identified); **short-end gap median 207 bps (range 26–331)**. FINAL verdict after full 113-date local run. Artifacts: data/m1/*_v2.* | 2026-07-13 (partial) |
+| EXP-002 — M2 neural surrogate (spec NOT yet frozen — freeze before first training run) | Can an NN layer close the short-end gap Heston structurally can't fit, without degrading the belly? | To freeze: ≤25 bps val RMSE where Heston fits (original bar) + short-end gap-closure metric (proposal: median gap −50%, belly degradation ≤5 bps) + 0 no-arb violations + lockbox (D7) honored | — | — |
+| EXP-003 — M3 exotic mispricing | How large is autocallable/barrier mispricing under static vs neural-augmented dynamics? | Descriptive + MC SE ≤ gap/10; hedging-error CIs via bootstrap | — | — |
