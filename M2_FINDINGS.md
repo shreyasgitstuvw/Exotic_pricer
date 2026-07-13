@@ -71,3 +71,15 @@ Short-end gap ~165 bps → ~60% closed → ~66 bps residual, with a guaranteed a
 
 Artifacts: `experiments/{m2b_dataset,train_gap_closer,diagnose_m2b}.py`, `src/hestonnn/gap_closer.py`,
 `data/m2b/gap_closer.pt`.
+
+### Optimization pass: two-headed unification — TESTED & REJECTED
+Built a shared-encoder net with both heads (params + correction) to test whether multi-task learning
+improves the gap-closer (`src/hestonnn/twohead.py`, `experiments/train_twohead.py`).
+| model | train | test | verdict |
+|---|---|---|---|
+| standalone M2.2 | 64% | **60%** | tighter generalization (4-pt gap) |
+| two-headed Head B | 67% | 51% | overfits (16-pt gap) — **negative transfer** |
+The shared encoder fits train better but generalizes worse; Head A's param correlations were
+unchanged (no gain either way). Conclusion: keep the standalone (simpler, generalizes better). A
+defended negative — the answer to "did you try unifying the two networks?" is "yes, and measured that
+it hurt."
