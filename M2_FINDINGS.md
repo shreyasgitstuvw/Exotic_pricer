@@ -72,6 +72,41 @@ Short-end gap ~165 bps → ~60% closed → ~66 bps residual, with a guaranteed a
 Artifacts: `experiments/{m2b_dataset,train_gap_closer,diagnose_m2b}.py`, `src/hestonnn/gap_closer.py`,
 `data/m2b/gap_closer.pt`.
 
+### Ceiling decomposition -> the deployable answer (the important result)
+Asked "why does the net stall at 60% vs the 87% oracle?" and decomposed the gap
+(`experiments/diagnose_ceiling.py`, test split):
+| ceiling | value | loss it isolates |
+|---|---|---|
+| A. per-tenor oracle | 87% | — |
+| B. per-bucket oracle | 87% | bucketing loss = **0** (2 buckets suffice) |
+| C. features→coeffs (ridge) | 67% train / 46% test | **feature-sufficiency wall** — the 24 features don't determine the coefficients even in-sample |
+| D. features→coeffs (GBM) | 42% test | nonlinearity doesn't help |
+| net (M2.2) | 60% test | already the BEST feature→coeff predictor (beats ridge/GBM out-of-sample) |
+
+**Conclusion:** the net isn't the bottleneck — the *summary features* are, and the 60% is near their
+ceiling. But the 87% oracle fits the **observed** residual, which is available at deployment. So the
+right deployable tool isn't a learned predictor at all:
+
+### Deployable M2 layer: direct per-tenor smoother — **87%, arb-free** (`experiments/direct_smoother.py`)
+Fit the observed residual (market_IV − Heston_IV) per short tenor with a quadratic; project to no-arb.
+No training, no train/test gap (each day fit independently, as a desk fits today's smile).
+| split | reduction | arb |
+|---|---|---|
+| train | 82% | 0 |
+| val | 85% | 0 |
+| **test** | **87%** | **0** |
+Projection costs nothing (a smoothly-fit residual is already ~arb-free). Reduces Heston's short-end
+mispricing from ~165–193 bps to **~25 bps**, guaranteed tradeable.
+
+### Two artifacts, two jobs (both stand)
+- **Deployable calibration layer** = the direct smoother (87%). Ship this: a desk observes the weekly
+  smile, this fits the Heston residual and repairs it arbitrage-free. This is M2's deliverable.
+- **Predictability study** = the neural net (60% from market-state features; 16% from the long end
+  alone). Answers "how independent is the NIFTY weekly regime?" — a real scientific finding, not a
+  worse version of the smoother.
+The decomposition is the lesson: three runs proved the features are the wall AND that the wall is
+irrelevant to the deployment use case — so we ship observation+fit, not prediction.
+
 ### Optimization pass: two-headed unification — TESTED & REJECTED
 Built a shared-encoder net with both heads (params + correction) to test whether multi-task learning
 improves the gap-closer (`src/hestonnn/twohead.py`, `experiments/train_twohead.py`).
